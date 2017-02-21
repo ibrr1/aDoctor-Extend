@@ -15,6 +15,8 @@ import it.unisa.aDoctor.smellDetectionRules.RigidAlarmManagerRule;
 import it.unisa.aDoctor.smellDetectionRules.PublicDataRule;
 import it.unisa.aDoctor.smellDetectionRules.LeakingThreadRule;
 import it.unisa.aDoctor.smellDetectionRules.UnclosedCloseableRule;
+import it.unisa.aDoctor.smellDetectionRules.InterruptingFromBackgroundRule;
+
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.PackageBean;
 import java.io.File;
@@ -77,7 +79,10 @@ public class RunAndroidSmellDetection {
         SlowLoopRule slowLoopRule = new SlowLoopRule();
         UnclosedCloseableRule unclosedCloseableRule = new UnclosedCloseableRule();
 
-        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC"};
+        // Extra code smells check
+        InterruptingFromBackgroundRule interruptingFromBackgroundRule = new InterruptingFromBackgroundRule();
+
+        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -159,12 +164,14 @@ public class RunAndroidSmellDetection {
                                                 File project3 = FileUtils.getFile(subProject.getAbsoluteFile());
                                                 for (File subProject2 : project3.listFiles()) {
                                                     if (!subProject2.isHidden()) {
-                                                    record.add(subProject2.getName());
+                                                        record.add(subProject2.getName());
                                                     }
                                                 }
 
                                                 System.out.println("-- Analyzing class: " + classBean.getBelongingPackage() + "." + classBean.getName());
                                                 record.add(classBean.getBelongingPackage() + "." + classBean.getName());
+
+                                                // 1
                                                 if (smellsNeeded.charAt(0) == '1') {
                                                     if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean)) {
                                                         record.add("1");
@@ -173,6 +180,7 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 2
                                                 if (smellsNeeded.charAt(1) == '1') {
                                                     if (debbugableReleaseRule.isDebuggableRelease(RunAndroidSmellDetection.getAndroidManifest(project))) {
                                                         record.add("1");
@@ -180,7 +188,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 3
                                                 if (smellsNeeded.charAt(2) == '1') {
                                                     if (durableWakeLockRule.isDurableWakeLock(classBean)) {
                                                         record.add("1");
@@ -188,7 +197,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 4
                                                 if (smellsNeeded.charAt(3) == '1') {
                                                     if (inefficientDataFormatAndParserRule.isInefficientDataFormatAndParser(classBean)) {
                                                         record.add("1");
@@ -196,7 +206,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 5
                                                 if (smellsNeeded.charAt(4) == '1') {
                                                     if (inefficientDataStructureRule.isInefficientDataStructure(classBean)) {
                                                         record.add("1");
@@ -205,6 +216,7 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 6
                                                 if (smellsNeeded.charAt(5) == '1') {
                                                     if (inefficientSQLQueryRule.isInefficientSQLQuery(classBean)) {
                                                         record.add("1");
@@ -213,6 +225,7 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 7
                                                 if (smellsNeeded.charAt(6) == '1') {
                                                     if (internaleGetterSetterRule.isInternalGetterSetter(classBean)) {
                                                         record.add("1");
@@ -220,7 +233,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 8
                                                 if (smellsNeeded.charAt(7) == '1') {
                                                     if (leakingInnerClassRule.isLeakingInnerClass(classBean)) {
                                                         record.add("1");
@@ -229,6 +243,7 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 9
                                                 if (smellsNeeded.charAt(8) == '1') {
                                                     if (leakingThreadRule.isLeakingThread(classBean)) {
                                                         record.add("1");
@@ -236,7 +251,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 10
                                                 if (smellsNeeded.charAt(9) == '1') {
                                                     if (memberIgnoringMethodRule.isMemberIgnoringMethod(classBean)) {
                                                         record.add("1");
@@ -244,7 +260,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 11
                                                 if (smellsNeeded.charAt(10) == '1') {
                                                     if (noLowMemoryResolverRule.isNoLowMemoryResolver(classBean)) {
                                                         record.add("1");
@@ -252,7 +269,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 12
                                                 if (smellsNeeded.charAt(11) == '1') {
                                                     if (publicDataRule.isPublicData(classBean)) {
                                                         record.add("1");
@@ -260,7 +278,8 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
-
+                                                
+                                                // 13
                                                 if (smellsNeeded.charAt(12) == '1') {
                                                     if (rigidAlarmManagerRule.isRigidAlarmManager(classBean)) {
                                                         record.add("1");
@@ -269,6 +288,7 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 14
                                                 if (smellsNeeded.charAt(13) == '1') {
                                                     if (slowLoopRule.isSlowLoop(classBean)) {
                                                         record.add("1");
@@ -277,8 +297,18 @@ public class RunAndroidSmellDetection {
                                                     }
                                                 }
 
+                                                // 15
                                                 if (smellsNeeded.charAt(14) == '1') {
                                                     if (unclosedCloseableRule.isUnclosedCloseable(classBean)) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+
+                                                // 16
+                                                if (smellsNeeded.charAt(15) == '1') {
+                                                    if (interruptingFromBackgroundRule.isInterruptingFromBackgroundRule(classBean)) {
                                                         record.add("1");
                                                     } else {
                                                         record.add("0");
