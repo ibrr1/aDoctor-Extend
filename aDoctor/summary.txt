@@ -1,0 +1,3 @@
+Finished at 12:11:52
+Total number of analyzed apps: 18
+Number of failed apps: 0
