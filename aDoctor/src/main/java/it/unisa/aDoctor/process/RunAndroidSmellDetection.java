@@ -16,6 +16,7 @@ import it.unisa.aDoctor.smellDetectionRules.PublicDataRule;
 import it.unisa.aDoctor.smellDetectionRules.LeakingThreadRule;
 import it.unisa.aDoctor.smellDetectionRules.UnclosedCloseableRule;
 import it.unisa.aDoctor.smellDetectionRules.InterruptingFromBackgroundRule;
+import it.unisa.aDoctor.smellDetectionRules.UnnecessaryPermissionRule;
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.PackageBean;
@@ -78,11 +79,12 @@ public class RunAndroidSmellDetection {
         RigidAlarmManagerRule rigidAlarmManagerRule = new RigidAlarmManagerRule();
         SlowLoopRule slowLoopRule = new SlowLoopRule();
         UnclosedCloseableRule unclosedCloseableRule = new UnclosedCloseableRule();
+        UnnecessaryPermissionRule unnecessaryPermissionRule = new UnnecessaryPermissionRule();
 
         // Extra code smells check
         InterruptingFromBackgroundRule interruptingFromBackgroundRule = new InterruptingFromBackgroundRule();
 
-        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB"};
+        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -102,7 +104,7 @@ public class RunAndroidSmellDetection {
         }
 
         CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
-        FileWriter fileWriter = new FileWriter(fileName, true);
+        FileWriter fileWriter = new FileWriter(fileName);
         try (CSVPrinter csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat)) {
             csvFilePrinter.printRecord((Object[]) FILE_HEADER);
 
@@ -314,6 +316,16 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
+                                                
+                                                // 17
+                                                if (smellsNeeded.charAt(16) == '1') {
+                                                    if (unnecessaryPermissionRule.isUnnecessaryPermission(RunAndroidSmellDetection.getAndroidManifest(project))) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+                                                
 
                                                 csvFilePrinter.printRecord(record);
                                             }

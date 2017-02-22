@@ -9,7 +9,7 @@ public class InterruptingFromBackgroundRule {
     public boolean isInterruptingFromBackgroundRule(ClassBean pClassBean) throws IOException {
 
         if (pClassBean.getTextContent().contains("extends Service")) {
-            if (pClassBean.getTextContent().contains("startActivity") || pClassBean.getTextContent().contains("Toast")) {
+            if (pClassBean.getTextContent().contains("startActivity") || pClassBean.getTextContent().contains("Toast") || pClassBean.getTextContent().contains("AlertDialog")) {
                 return true;
             }
         }
