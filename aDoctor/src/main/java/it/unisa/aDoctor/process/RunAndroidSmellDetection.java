@@ -17,6 +17,10 @@ import it.unisa.aDoctor.smellDetectionRules.LeakingThreadRule;
 import it.unisa.aDoctor.smellDetectionRules.UnclosedCloseableRule;
 import it.unisa.aDoctor.smellDetectionRules.InterruptingFromBackgroundRule;
 import it.unisa.aDoctor.smellDetectionRules.UnnecessaryPermissionRule;
+import it.unisa.aDoctor.smellDetectionRules.BulkDataTransferOnSlowNetworkRule;
+import it.unisa.aDoctor.smellDetectionRules.DroppedDataRule;
+
+
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.PackageBean;
@@ -79,12 +83,14 @@ public class RunAndroidSmellDetection {
         RigidAlarmManagerRule rigidAlarmManagerRule = new RigidAlarmManagerRule();
         SlowLoopRule slowLoopRule = new SlowLoopRule();
         UnclosedCloseableRule unclosedCloseableRule = new UnclosedCloseableRule();
-        UnnecessaryPermissionRule unnecessaryPermissionRule = new UnnecessaryPermissionRule();
-
+          
         // Extra code smells check
         InterruptingFromBackgroundRule interruptingFromBackgroundRule = new InterruptingFromBackgroundRule();
+        UnnecessaryPermissionRule unnecessaryPermissionRule = new UnnecessaryPermissionRule();
+        BulkDataTransferOnSlowNetworkRule bulkDataTransferOnSlowNetworkRule = new BulkDataTransferOnSlowNetworkRule();
+        DroppedDataRule droppedDataRule = new DroppedDataRule();
 
-        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP"};
+        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -325,6 +331,25 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
+                                                
+                                                // 18
+                                                if (smellsNeeded.charAt(17) == '1') {
+                                                    if (bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+                                                
+                                                // 19
+                                                if (smellsNeeded.charAt(18) == '1') {
+                                                    if (droppedDataRule.isDroppedDataRule(classBean)) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+                                                
                                                 
 
                                                 csvFilePrinter.printRecord(record);
