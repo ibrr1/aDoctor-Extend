@@ -19,8 +19,7 @@ import it.unisa.aDoctor.smellDetectionRules.InterruptingFromBackgroundRule;
 import it.unisa.aDoctor.smellDetectionRules.UnnecessaryPermissionRule;
 import it.unisa.aDoctor.smellDetectionRules.BulkDataTransferOnSlowNetworkRule;
 import it.unisa.aDoctor.smellDetectionRules.DroppedDataRule;
-
-
+import it.unisa.aDoctor.smellDetectionRules.EarlyResourceBindingRule;
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.PackageBean;
@@ -89,8 +88,9 @@ public class RunAndroidSmellDetection {
         UnnecessaryPermissionRule unnecessaryPermissionRule = new UnnecessaryPermissionRule();
         BulkDataTransferOnSlowNetworkRule bulkDataTransferOnSlowNetworkRule = new BulkDataTransferOnSlowNetworkRule();
         DroppedDataRule droppedDataRule = new DroppedDataRule();
-
-        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD"};
+        EarlyResourceBindingRule earlyResourceBindingRule = new EarlyResourceBindingRule();
+        
+        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -136,9 +136,7 @@ public class RunAndroidSmellDetection {
                             totalApps += Files.list(Paths.get(project.getAbsoluteFile().toString())).count();
                         } catch (Exception e) {
                             System.out.println("Exception: " + e);
-
                         }
-
                     }
 
                     File project2 = FileUtils.getFile(project.getAbsoluteFile());
@@ -345,6 +343,25 @@ public class RunAndroidSmellDetection {
                                                 if (smellsNeeded.charAt(18) == '1') {
                                                     if (droppedDataRule.isDroppedDataRule(classBean)) {
                                                         record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+                                                
+                                                // 20
+                                                if (smellsNeeded.charAt(19) == '1') {
+                                                    if (earlyResourceBindingRule.isEarlyResourceBindingRule(classBean)) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+//                                                 21
+                                                if (smellsNeeded.charAt(20) == '1') {
+                                                    if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean) 
+                                                            || inefficientSQLQueryRule.isInefficientSQLQuery(classBean) 
+                                                            || bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
+                                                        record.add("1"); 
                                                     } else {
                                                         record.add("0");
                                                     }
