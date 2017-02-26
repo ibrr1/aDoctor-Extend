@@ -21,6 +21,7 @@ import it.unisa.aDoctor.smellDetectionRules.BulkDataTransferOnSlowNetworkRule;
 import it.unisa.aDoctor.smellDetectionRules.DroppedDataRule;
 import it.unisa.aDoctor.smellDetectionRules.EarlyResourceBindingRule;
 import it.unisa.aDoctor.smellDetectionRules.TrackingHardwareIdRule;
+import it.unisa.aDoctor.smellDetectionRules.UncachedViewsRule;
 
 
 import it.unisa.aDoctor.beans.ClassBean;
@@ -92,8 +93,9 @@ public class RunAndroidSmellDetection {
         DroppedDataRule droppedDataRule = new DroppedDataRule();
         EarlyResourceBindingRule earlyResourceBindingRule = new EarlyResourceBindingRule();
         TrackingHardwareIdRule trackingHardwareIdRule = new TrackingHardwareIdRule();
+        UncachedViewsRule uncachedViewsRule = new UncachedViewsRule();
         
-        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI"};
+        String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -378,6 +380,15 @@ public class RunAndroidSmellDetection {
                                                         record.add("0");
                                                     }
                                                 }
+                                                // 23 uncachedViewsRule
+                                                if (smellsNeeded.charAt(22) == '1') {
+                                                    if (uncachedViewsRule.isUncachedViewsRule(classBean)) {
+                                                        record.add("1");
+                                                    } else {
+                                                        record.add("0");
+                                                    }
+                                                }
+                                                
                                                 
                                                 
 
