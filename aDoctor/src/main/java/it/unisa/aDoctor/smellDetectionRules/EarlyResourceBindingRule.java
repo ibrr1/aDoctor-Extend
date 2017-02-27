@@ -6,17 +6,12 @@ import it.unisa.aDoctor.beans.MethodBean;
 public class EarlyResourceBindingRule {
 
     public boolean isEarlyResourceBindingRule(ClassBean pClass) {
-        for (MethodBean method : pClass.getMethods()) {
-            if (method.getTextContent().contains("LocationManager")) {
-                for (MethodBean call : method.getMethodCalls()) {
-                    if (!call.getName().equals("onResume")) {
-                        return true;
-                    }
-                }
+
+        if (pClass.getTextContent().contains("LocationManager")) {
+            if (!pClass.getTextContent().contains("onResume")) {
+                return true;
             }
         }
-        
-        
 
         return false;
 
