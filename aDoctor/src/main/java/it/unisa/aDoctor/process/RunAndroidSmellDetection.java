@@ -23,6 +23,7 @@ import it.unisa.aDoctor.smellDetectionRules.EarlyResourceBindingRule;
 import it.unisa.aDoctor.smellDetectionRules.TrackingHardwareIdRule;
 import it.unisa.aDoctor.smellDetectionRules.UncachedViewsRule;
 import it.unisa.aDoctor.smellDetectionRules.ProhibitedDataTransferRule;
+import it.unisa.aDoctor.smellDetectionRules.UncontrolledFocusOrderRule;
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.MethodBean;
@@ -51,7 +52,7 @@ import org.apache.commons.lang.StringUtils;
 public class RunAndroidSmellDetection {
 
     private static final String NEW_LINE_SEPARATOR = "\n";
-    public static String[] FILE_HEADER;
+    public static String[] FILE_HEADER, FILE_HEADER_LAYOUT;
     public static ArrayList<String> failedApps = new ArrayList<String>();
     public static ArrayList<String> countApps = new ArrayList<String>();
     public static int totalApps = 0;
@@ -65,11 +66,14 @@ public class RunAndroidSmellDetection {
         // Folder containing android apps to analyze
         File experimentDirectory = FileUtils.getFile(args[0]);
         File fileName = new File(args[1]);
-        String smellsNeeded = args[2];
+        File fileName2 = new File(args[2]);
+        String smellsNeeded = args[3];
+        String smellsNeededLayout = args[4];
         System.out.println("smellsNeeded: " + smellsNeeded);
         System.out.println("Folder Name: " + experimentDirectory);
 
         FILE_HEADER = new String[StringUtils.countMatches(smellsNeeded, "1") + 4];
+        FILE_HEADER_LAYOUT = new String[StringUtils.countMatches(smellsNeededLayout, "1") + 4];
 
         DataTransmissionWithoutCompressionRule dataTransmissionWithoutCompressionRule = new DataTransmissionWithoutCompressionRule();
         DebuggableReleaseRule debbugableReleaseRule = new DebuggableReleaseRule();
@@ -96,13 +100,21 @@ public class RunAndroidSmellDetection {
         TrackingHardwareIdRule trackingHardwareIdRule = new TrackingHardwareIdRule();
         UncachedViewsRule uncachedViewsRule = new UncachedViewsRule();
         ProhibitedDataTransferRule prohibitedDataTransferRule = new ProhibitedDataTransferRule();
+        UncontrolledFocusOrderRule uncontrolledFocusOrderRule = new UncontrolledFocusOrderRule();
 
         String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV", "PDT"};
+        String[] smellsTypeLayout = {"UF"};
+
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
         FILE_HEADER[2] = "Tag Name";
         FILE_HEADER[3] = "Class";
+        
+        FILE_HEADER_LAYOUT[0] = "App Name";
+        FILE_HEADER_LAYOUT[1] = "Tag";
+        FILE_HEADER_LAYOUT[2] = "Tag Name";
+        FILE_HEADER_LAYOUT[3] = "File";
 
         int headerCounter = 4;
 
@@ -115,330 +127,370 @@ public class RunAndroidSmellDetection {
 
             }
         }
+        
+        int headerCounter2 = 4;
+
+        for (int i = 0; i < smellsNeededLayout.length(); i++) {
+            if (smellsNeededLayout.charAt(i) == '1') {
+                FILE_HEADER_LAYOUT[headerCounter2] = smellsTypeLayout[i];
+                headerCounter2++;
+
+            } else {
+
+            }
+        }
+        
+        
 
         CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
         FileWriter fileWriter = new FileWriter(fileName);
+        FileWriter fileWriter2 = new FileWriter(fileName2);
         try (CSVPrinter csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat)) {
-            csvFilePrinter.printRecord((Object[]) FILE_HEADER);
+            try (CSVPrinter csvFilePrinter2 = new CSVPrinter(fileWriter2, csvFileFormat)) {
+                csvFilePrinter.printRecord((Object[]) FILE_HEADER);
+                csvFilePrinter2.printRecord((Object[]) FILE_HEADER_LAYOUT);
 
-            for (File project : experimentDirectory.listFiles()) {
+                for (File project : experimentDirectory.listFiles()) {
 
-                if (!project.isHidden()) {
+                    if (!project.isHidden()) {
 
-                    System.out.println("============================");
-                    System.out.println("Main Project: " + project.getName());
-                    System.out.println("============================");
+                        System.out.println("============================");
+                        System.out.println("========= Main Project: " + project.getName() + "=========");
+                        System.out.println("============================");
 
-                    File f = new File(project.getAbsoluteFile().toString() + "/build.gradle");
-                    File f2 = new File(project.getAbsoluteFile().toString() + "/settings.gradle");
-                    File f3 = new File(project.getAbsoluteFile().toString() + "/AndroidManifest.xml");
-                    File f4 = new File(project.getAbsoluteFile().toString() + "/gradlew.bat");
-                    File f5 = new File(project.getAbsoluteFile().toString() + "/default.properties");
+                        File f = new File(project.getAbsoluteFile().toString() + "/build.gradle");
+                        File f2 = new File(project.getAbsoluteFile().toString() + "/settings.gradle");
+                        File f3 = new File(project.getAbsoluteFile().toString() + "/AndroidManifest.xml");
+                        File f4 = new File(project.getAbsoluteFile().toString() + "/gradlew.bat");
+                        File f5 = new File(project.getAbsoluteFile().toString() + "/default.properties");
 
-                    if (f.exists() || f2.exists() || f3.exists() || f4.exists() || f5.exists()) {
-                        totalApps++;
+                        if (f.exists() || f2.exists() || f3.exists() || f4.exists() || f5.exists()) {
+                            totalApps++;
 
-                    } else {
+                        } else {
+                            try {
+                                totalApps += Files.list(Paths.get(project.getAbsoluteFile().toString())).count();
+                            } catch (Exception e) {
+                                System.out.println("Exception: " + e);
+                            }
+                        }
+
+                        File project2 = FileUtils.getFile(project.getAbsoluteFile());
                         try {
-                            totalApps += Files.list(Paths.get(project.getAbsoluteFile().toString())).count();
+                            for (File subProject : project2.listFiles()) {
+                                boolean alreadyExecuted = false;
+                                System.out.println(">> subProject: " + subProject.getName());
+
+                                if (!subProject.isHidden()) {
+
+                                    try {
+
+                                        // Method to convert a directory into a set of java packages.
+                                        ArrayList<PackageBean> packages = FolderToJavaProjectConverter.convert(subProject.getAbsolutePath());
+
+                                        for (PackageBean packageBean : packages) {
+
+                                            for (ClassBean classBean : packageBean.getClasses()) {
+
+                                                List record = new ArrayList();
+
+                                                record.add(project.getName());
+
+                                                if (f.exists() || f2.exists() || f3.exists() || f4.exists() || f5.exists()) {
+//                                              System.out.println("success");
+                                                    record.add(project.getName());
+
+                                                } else {
+//                                              System.out.println("fail");
+                                                    record.add(subProject.getName());
+
+                                                    File project3 = FileUtils.getFile(subProject.getAbsoluteFile());
+                                                    for (File subProject2 : project3.listFiles()) {
+                                                        if (!subProject2.isHidden()) {
+                                                            record.add(subProject2.getName());
+
+                                                        }
+                                                    }
+
+                                                   
+                                                    System.out.println("-- Analyzing class: " + classBean.getBelongingPackage() + "." + classBean.getName());
+                                                    record.add(classBean.getBelongingPackage() + "." + classBean.getName());
+
+//                                                
+                                                    // 1
+                                                    if (smellsNeeded.charAt(0) == '1') {
+                                                        if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 2
+                                                    if (smellsNeeded.charAt(1) == '1') {
+                                                        if (debbugableReleaseRule.isDebuggableRelease(RunAndroidSmellDetection.getAndroidManifest(project))) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 3
+                                                    if (smellsNeeded.charAt(2) == '1') {
+                                                        if (durableWakeLockRule.isDurableWakeLock(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 4
+                                                    if (smellsNeeded.charAt(3) == '1') {
+                                                        if (inefficientDataFormatAndParserRule.isInefficientDataFormatAndParser(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 5
+                                                    if (smellsNeeded.charAt(4) == '1') {
+                                                        if (inefficientDataStructureRule.isInefficientDataStructure(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 6
+                                                    if (smellsNeeded.charAt(5) == '1') {
+                                                        if (inefficientSQLQueryRule.isInefficientSQLQuery(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 7
+                                                    if (smellsNeeded.charAt(6) == '1') {
+                                                        if (internaleGetterSetterRule.isInternalGetterSetter(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 8
+                                                    if (smellsNeeded.charAt(7) == '1') {
+                                                        if (leakingInnerClassRule.isLeakingInnerClass(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 9
+                                                    if (smellsNeeded.charAt(8) == '1') {
+                                                        if (leakingThreadRule.isLeakingThread(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 10
+                                                    if (smellsNeeded.charAt(9) == '1') {
+                                                        if (memberIgnoringMethodRule.isMemberIgnoringMethod(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 11
+                                                    if (smellsNeeded.charAt(10) == '1') {
+                                                        if (noLowMemoryResolverRule.isNoLowMemoryResolver(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 12
+                                                    if (smellsNeeded.charAt(11) == '1') {
+                                                        if (publicDataRule.isPublicData(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 13
+                                                    if (smellsNeeded.charAt(12) == '1') {
+                                                        if (rigidAlarmManagerRule.isRigidAlarmManager(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 14
+                                                    if (smellsNeeded.charAt(13) == '1') {
+                                                        if (slowLoopRule.isSlowLoop(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 15
+                                                    if (smellsNeeded.charAt(14) == '1') {
+                                                        if (unclosedCloseableRule.isUnclosedCloseable(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 16
+                                                    if (smellsNeeded.charAt(15) == '1') {
+                                                        if (interruptingFromBackgroundRule.isInterruptingFromBackgroundRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 17
+                                                    if (smellsNeeded.charAt(16) == '1') {
+                                                        if (unnecessaryPermissionRule.isUnnecessaryPermission(RunAndroidSmellDetection.getAndroidManifest(project))) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 18
+                                                    if (smellsNeeded.charAt(17) == '1') {
+                                                        if (bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 19
+                                                    if (smellsNeeded.charAt(18) == '1') {
+                                                        if (droppedDataRule.isDroppedDataRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 20
+                                                    if (smellsNeeded.charAt(19) == '1') {
+                                                        if (earlyResourceBindingRule.isEarlyResourceBindingRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+//                                                 21
+                                                    if (smellsNeeded.charAt(20) == '1') {
+                                                        if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean)
+                                                                || inefficientSQLQueryRule.isInefficientSQLQuery(classBean)
+                                                                || bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 22
+                                                    if (smellsNeeded.charAt(21) == '1') {
+                                                        if (trackingHardwareIdRule.isTrackingHardwareIdRule(RunAndroidSmellDetection.getAndroidManifest(project), classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 23 uncachedViewsRule
+                                                    if (smellsNeeded.charAt(22) == '1') {
+                                                        if (uncachedViewsRule.isUncachedViewsRule(classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    // 24
+                                                    if (smellsNeeded.charAt(23) == '1') {
+                                                        if (prohibitedDataTransferRule.isProhibitedDataTransferRule(RunAndroidSmellDetection.getAndroidManifest(project), classBean)) {
+                                                            record.add("1");
+                                                        } else {
+                                                            record.add("0");
+                                                        }
+                                                    }
+
+                                                    csvFilePrinter.printRecord(record);
+                                                }
+                                            }
+                                        }
+
+                                    } catch (Exception e) {
+                                        System.out.println("Exception: " + e);
+                                        failedApps.add(project.getName());
+                                        FileWriter writer = new FileWriter("FailedApps.csv", true);
+                                        writer.append(project.getName());
+                                        writer.append('\n');
+                                        writer.close();
+
+                                    }
+
+                                    // Code smells For layout files
+                                    for (File layoutFile : getLayoutFiles(subProject)) {
+                                        System.out.println("-- Analyzing layout: " + layoutFile.getName());
+
+                                        List record2 = new ArrayList();
+                                        record2.add(project.getName());
+                                        record2.add(subProject.getName());
+
+                                        File project3 = FileUtils.getFile(subProject.getAbsoluteFile());
+                                        for (File subProject2 : project3.listFiles()) {
+                                            if (!subProject2.isHidden()) {
+                                                record2.add(subProject2.getName());
+
+                                            }
+                                        }
+
+                                        record2.add(layoutFile.getName());
+
+                                        if (smellsNeededLayout.charAt(0) == '1') {
+                                            if (uncontrolledFocusOrderRule.isUncontrolledFocusOrderRule(layoutFile)) {
+                                                record2.add("1");
+                                            } else {
+                                                record2.add("0");
+                                            }
+                                        }
+
+                                        csvFilePrinter2.printRecord(record2);
+                                    }
+                                }
+                            }
                         } catch (Exception e) {
                             System.out.println("Exception: " + e);
                         }
                     }
-
-                    File project2 = FileUtils.getFile(project.getAbsoluteFile());
-                    try {
-                        for (File subProject : project2.listFiles()) {
-                            System.out.println("subProject: " + subProject.getName());
-
-                            if (!subProject.isHidden()) {
-
-                                try {
-
-                                    // Method to convert a directory into a set of java packages.
-                                    ArrayList<PackageBean> packages = FolderToJavaProjectConverter.convert(subProject.getAbsolutePath());
-
-                                    for (PackageBean packageBean : packages) {
-
-                                        for (ClassBean classBean : packageBean.getClasses()) {
-
-                                            List record = new ArrayList();
-
-                                            record.add(project.getName());
-
-                                            if (f.exists() || f2.exists() || f3.exists() || f4.exists() || f5.exists()) {
-//                                              System.out.println("success");
-                                                record.add(project.getName());
-
-                                            } else {
-//                                              System.out.println("fail");
-                                                record.add(subProject.getName());
-
-                                                File project3 = FileUtils.getFile(subProject.getAbsoluteFile());
-                                                for (File subProject2 : project3.listFiles()) {
-                                                    if (!subProject2.isHidden()) {
-                                                        record.add(subProject2.getName());
-                                                    }
-                                                }
-
-                                                System.out.println("-- Analyzing class: " + classBean.getBelongingPackage() + "." + classBean.getName());
-                                                record.add(classBean.getBelongingPackage() + "." + classBean.getName());
-
-                                                for (MethodBean method : classBean.getMethods()) {
-                                                    
-                                                        System.out.println("=============> "+method.getName());
-                                                        
-                                                        if (method.getName().equals("onResume")){
-                                                            System.out.println("$$$$$$$$$$$$$$ found it");
-                                                            
-                                                        }else{
-                                                        }
-
-                                                }
-
-                                                // 1
-                                                if (smellsNeeded.charAt(0) == '1') {
-                                                    if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 2
-                                                if (smellsNeeded.charAt(1) == '1') {
-                                                    if (debbugableReleaseRule.isDebuggableRelease(RunAndroidSmellDetection.getAndroidManifest(project))) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 3
-                                                if (smellsNeeded.charAt(2) == '1') {
-                                                    if (durableWakeLockRule.isDurableWakeLock(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 4
-                                                if (smellsNeeded.charAt(3) == '1') {
-                                                    if (inefficientDataFormatAndParserRule.isInefficientDataFormatAndParser(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 5
-                                                if (smellsNeeded.charAt(4) == '1') {
-                                                    if (inefficientDataStructureRule.isInefficientDataStructure(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 6
-                                                if (smellsNeeded.charAt(5) == '1') {
-                                                    if (inefficientSQLQueryRule.isInefficientSQLQuery(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 7
-                                                if (smellsNeeded.charAt(6) == '1') {
-                                                    if (internaleGetterSetterRule.isInternalGetterSetter(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 8
-                                                if (smellsNeeded.charAt(7) == '1') {
-                                                    if (leakingInnerClassRule.isLeakingInnerClass(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 9
-                                                if (smellsNeeded.charAt(8) == '1') {
-                                                    if (leakingThreadRule.isLeakingThread(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 10
-                                                if (smellsNeeded.charAt(9) == '1') {
-                                                    if (memberIgnoringMethodRule.isMemberIgnoringMethod(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 11
-                                                if (smellsNeeded.charAt(10) == '1') {
-                                                    if (noLowMemoryResolverRule.isNoLowMemoryResolver(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 12
-                                                if (smellsNeeded.charAt(11) == '1') {
-                                                    if (publicDataRule.isPublicData(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 13
-                                                if (smellsNeeded.charAt(12) == '1') {
-                                                    if (rigidAlarmManagerRule.isRigidAlarmManager(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 14
-                                                if (smellsNeeded.charAt(13) == '1') {
-                                                    if (slowLoopRule.isSlowLoop(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 15
-                                                if (smellsNeeded.charAt(14) == '1') {
-                                                    if (unclosedCloseableRule.isUnclosedCloseable(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 16
-                                                if (smellsNeeded.charAt(15) == '1') {
-                                                    if (interruptingFromBackgroundRule.isInterruptingFromBackgroundRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 17
-                                                if (smellsNeeded.charAt(16) == '1') {
-                                                    if (unnecessaryPermissionRule.isUnnecessaryPermission(RunAndroidSmellDetection.getAndroidManifest(project))) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 18
-                                                if (smellsNeeded.charAt(17) == '1') {
-                                                    if (bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 19
-                                                if (smellsNeeded.charAt(18) == '1') {
-                                                    if (droppedDataRule.isDroppedDataRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 20
-                                                if (smellsNeeded.charAt(19) == '1') {
-                                                    if (earlyResourceBindingRule.isEarlyResourceBindingRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-//                                                 21
-                                                if (smellsNeeded.charAt(20) == '1') {
-                                                    if (dataTransmissionWithoutCompressionRule.isDataTransmissionWithoutCompression(classBean)
-                                                            || inefficientSQLQueryRule.isInefficientSQLQuery(classBean)
-                                                            || bulkDataTransferOnSlowNetworkRule.isBulkDataTransferOnSlowNetworkRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                // 22
-                                                if (smellsNeeded.charAt(21) == '1') {
-                                                    if (trackingHardwareIdRule.isTrackingHardwareIdRule(RunAndroidSmellDetection.getAndroidManifest(project), classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-                                                
-                                                // 23 uncachedViewsRule
-                                                if (smellsNeeded.charAt(22) == '1') {
-                                                    if (uncachedViewsRule.isUncachedViewsRule(classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-                                                
-                                                // 24
-                                                if (smellsNeeded.charAt(23) == '1') {
-                                                    if (prohibitedDataTransferRule.isProhibitedDataTransferRule(RunAndroidSmellDetection.getAndroidManifest(project), classBean)) {
-                                                        record.add("1");
-                                                    } else {
-                                                        record.add("0");
-                                                    }
-                                                }
-
-                                                csvFilePrinter.printRecord(record);
-                                            }
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    System.out.println("Exception: " + e);
-                                    failedApps.add(project.getName());
-                                    FileWriter writer = new FileWriter("FailedApps.csv", true);
-                                    writer.append(project.getName());
-                                    writer.append('\n');
-                                    writer.close();
-
-                                }
-
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Exception: " + e);
-                    }
                 }
+            
+            System.out.println("CSV file was created successfully!");
+            System.out.println("Finished at " + ft.format(new Date()));
+            System.out.println("number of apps " + totalApps);
+            System.out.println("Number of failed apps: " + failedApps.size());
             }
         }
-        System.out.println("CSV file was created successfully!");
-        System.out.println("Finished at " + ft.format(new Date()));
-        System.out.println("number of apps " + totalApps);
-        System.out.println("Number of failed apps: " + failedApps.size());
     }
 
     public static File getAndroidManifest(File dir) {
@@ -450,6 +502,21 @@ public class RunAndroidSmellDetection {
             }
         }
         return androidManifest;
+    }
+
+    public static List<File> getLayoutFiles(File dir) {
+        List<File> layoutFile = new ArrayList<File>();
+
+        List<File> files = (List<File>) FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        for (File file : files) {
+            if (file.getName().endsWith(".xml") && file.getAbsolutePath().contains("res/layout")) {
+//                                                        xmlFiles.add(file.getPath());
+//                System.out.println(file.getName());
+                layoutFile.add(file);
+            }
+        }
+        return layoutFile;
+
     }
 
 }
