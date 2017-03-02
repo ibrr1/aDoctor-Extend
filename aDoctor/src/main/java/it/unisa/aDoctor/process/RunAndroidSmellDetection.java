@@ -65,12 +65,12 @@ public class RunAndroidSmellDetection {
 
         // Folder containing android apps to analyze
         File experimentDirectory = FileUtils.getFile(args[0]);
-        File fileName = new File(args[1]);
-        File fileName2 = new File(args[2]);
+        File classesResultsFileName = new File(args[1]);
+        File layoutsResultsFileName = new File(args[2]);
         String smellsNeeded = args[3];
         String smellsNeededLayout = args[4];
-        System.out.println("smellsNeeded: " + smellsNeeded);
-        System.out.println("Folder Name: " + experimentDirectory);
+
+        System.out.println("Experiment Directory: " + experimentDirectory);
 
         FILE_HEADER = new String[StringUtils.countMatches(smellsNeeded, "1") + 4];
         FILE_HEADER_LAYOUT = new String[StringUtils.countMatches(smellsNeededLayout, "1") + 4];
@@ -105,12 +105,11 @@ public class RunAndroidSmellDetection {
         String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV", "PDT"};
         String[] smellsTypeLayout = {"UF"};
 
-
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
         FILE_HEADER[2] = "Tag Name";
         FILE_HEADER[3] = "Class";
-        
+
         FILE_HEADER_LAYOUT[0] = "App Name";
         FILE_HEADER_LAYOUT[1] = "Tag";
         FILE_HEADER_LAYOUT[2] = "Tag Name";
@@ -127,24 +126,22 @@ public class RunAndroidSmellDetection {
 
             }
         }
-        
-        int headerCounter2 = 4;
+
+        int headerCounterForLayout = 4;
 
         for (int i = 0; i < smellsNeededLayout.length(); i++) {
             if (smellsNeededLayout.charAt(i) == '1') {
-                FILE_HEADER_LAYOUT[headerCounter2] = smellsTypeLayout[i];
-                headerCounter2++;
+                FILE_HEADER_LAYOUT[headerCounterForLayout] = smellsTypeLayout[i];
+                headerCounterForLayout++;
 
             } else {
 
             }
         }
-        
-        
 
         CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
-        FileWriter fileWriter = new FileWriter(fileName);
-        FileWriter fileWriter2 = new FileWriter(fileName2);
+        FileWriter fileWriter = new FileWriter(classesResultsFileName);
+        FileWriter fileWriter2 = new FileWriter(layoutsResultsFileName);
         try (CSVPrinter csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat)) {
             try (CSVPrinter csvFilePrinter2 = new CSVPrinter(fileWriter2, csvFileFormat)) {
                 csvFilePrinter.printRecord((Object[]) FILE_HEADER);
@@ -155,7 +152,7 @@ public class RunAndroidSmellDetection {
                     if (!project.isHidden()) {
 
                         System.out.println("============================");
-                        System.out.println("========= Main Project: " + project.getName() + "=========");
+                        System.out.println("========= Main Project: " + project.getName() + " =========");
                         System.out.println("============================");
 
                         File f = new File(project.getAbsoluteFile().toString() + "/build.gradle");
@@ -179,7 +176,7 @@ public class RunAndroidSmellDetection {
                         try {
                             for (File subProject : project2.listFiles()) {
                                 boolean alreadyExecuted = false;
-                                System.out.println(">> subProject: " + subProject.getName());
+                                System.out.println(">>> Tag Name: " + subProject.getName());
 
                                 if (!subProject.isHidden()) {
 
@@ -212,7 +209,6 @@ public class RunAndroidSmellDetection {
                                                         }
                                                     }
 
-                                                   
                                                     System.out.println("-- Analyzing class: " + classBean.getBelongingPackage() + "." + classBean.getName());
                                                     record.add(classBean.getBelongingPackage() + "." + classBean.getName());
 
@@ -484,11 +480,11 @@ public class RunAndroidSmellDetection {
                         }
                     }
                 }
-            
-            System.out.println("CSV file was created successfully!");
-            System.out.println("Finished at " + ft.format(new Date()));
-            System.out.println("number of apps " + totalApps);
-            System.out.println("Number of failed apps: " + failedApps.size());
+
+                System.out.println("CSV file was created successfully!");
+                System.out.println("Finished at " + ft.format(new Date()));
+                System.out.println("number of apps " + totalApps);
+                System.out.println("Number of failed apps: " + failedApps.size());
             }
         }
     }
