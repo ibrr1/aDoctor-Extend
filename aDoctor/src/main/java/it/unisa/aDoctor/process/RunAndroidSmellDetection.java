@@ -24,6 +24,8 @@ import it.unisa.aDoctor.smellDetectionRules.TrackingHardwareIdRule;
 import it.unisa.aDoctor.smellDetectionRules.UncachedViewsRule;
 import it.unisa.aDoctor.smellDetectionRules.ProhibitedDataTransferRule;
 import it.unisa.aDoctor.smellDetectionRules.UncontrolledFocusOrderRule;
+import it.unisa.aDoctor.smellDetectionRules.NotDescriptiveUIRule;
+
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.MethodBean;
@@ -101,9 +103,10 @@ public class RunAndroidSmellDetection {
         UncachedViewsRule uncachedViewsRule = new UncachedViewsRule();
         ProhibitedDataTransferRule prohibitedDataTransferRule = new ProhibitedDataTransferRule();
         UncontrolledFocusOrderRule uncontrolledFocusOrderRule = new UncontrolledFocusOrderRule();
+        NotDescriptiveUIRule notDescriptiveUIRule = new NotDescriptiveUIRule();
 
         String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV", "PDT"};
-        String[] smellsTypeLayout = {"UF"};
+        String[] smellsTypeLayout = {"UF", "NDUI"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -465,6 +468,14 @@ public class RunAndroidSmellDetection {
 
                                         if (smellsNeededLayout.charAt(0) == '1') {
                                             if (uncontrolledFocusOrderRule.isUncontrolledFocusOrderRule(layoutFile)) {
+                                                record2.add("1");
+                                            } else {
+                                                record2.add("0");
+                                            }
+                                        }
+                                        
+                                        if (smellsNeededLayout.charAt(1) == '1') {
+                                            if (notDescriptiveUIRule.isNotDescriptiveUIRule(layoutFile)) {
                                                 record2.add("1");
                                             } else {
                                                 record2.add("0");
