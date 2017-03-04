@@ -25,7 +25,8 @@ public class UntouchableRule {
                 int elementSize = Integer.parseInt(size);
                 
                 if (elementSize < 48){
-                    return true;      
+                    return true;    
+      
                 }
             }
         }
