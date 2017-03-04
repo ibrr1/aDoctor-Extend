@@ -25,7 +25,7 @@ import it.unisa.aDoctor.smellDetectionRules.UncachedViewsRule;
 import it.unisa.aDoctor.smellDetectionRules.ProhibitedDataTransferRule;
 import it.unisa.aDoctor.smellDetectionRules.UncontrolledFocusOrderRule;
 import it.unisa.aDoctor.smellDetectionRules.NotDescriptiveUIRule;
-
+import it.unisa.aDoctor.smellDetectionRules.UntouchableRule;
 
 import it.unisa.aDoctor.beans.ClassBean;
 import it.unisa.aDoctor.beans.MethodBean;
@@ -104,9 +104,10 @@ public class RunAndroidSmellDetection {
         ProhibitedDataTransferRule prohibitedDataTransferRule = new ProhibitedDataTransferRule();
         UncontrolledFocusOrderRule uncontrolledFocusOrderRule = new UncontrolledFocusOrderRule();
         NotDescriptiveUIRule notDescriptiveUIRule = new NotDescriptiveUIRule();
+        UntouchableRule untouchableRule = new UntouchableRule();
 
         String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV", "PDT"};
-        String[] smellsTypeLayout = {"UF", "NDUI"};
+        String[] smellsTypeLayout = {"UF", "NDUI", "U"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -473,9 +474,17 @@ public class RunAndroidSmellDetection {
                                                 record2.add("0");
                                             }
                                         }
-                                        
+
                                         if (smellsNeededLayout.charAt(1) == '1') {
                                             if (notDescriptiveUIRule.isNotDescriptiveUIRule(layoutFile)) {
+                                                record2.add("1");
+                                            } else {
+                                                record2.add("0");
+                                            }
+                                        }
+
+                                        if (smellsNeededLayout.charAt(2) == '1') {
+                                            if (untouchableRule.isUntouchableRule(layoutFile)) {
                                                 record2.add("1");
                                             } else {
                                                 record2.add("0");
@@ -516,9 +525,9 @@ public class RunAndroidSmellDetection {
 
         List<File> files = (List<File>) FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         for (File file : files) {
-            if (file.getName().endsWith(".xml") && file.getAbsolutePath().contains("res/layout")) {
-//                                                        xmlFiles.add(file.getPath());
-//                System.out.println(file.getName());
+            if (file.getName().endsWith(".xml")
+                    && file.getAbsolutePath().contains("res/layout")
+                    && !file.getAbsolutePath().contains("com.android.support")) {
                 layoutFile.add(file);
             }
         }
