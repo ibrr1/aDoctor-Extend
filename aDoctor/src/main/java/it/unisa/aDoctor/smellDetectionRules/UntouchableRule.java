@@ -10,10 +10,10 @@ import org.apache.commons.io.LineIterator;
 
 public class UntouchableRule {
 
-    public boolean isUntouchableRule(File androidManifest) throws IOException {
+    public boolean isUntouchableRule(File layoutFile) throws IOException {
         Pattern regex = Pattern.compile("(.*)android:layout_width(\\s*)=(\\s*)\"\\d{1,}dp\"(\\s*)|(.*)android:layout_height(\\s*)=(\\s*)\"\\d{1,}dp\"(\\s*)", Pattern.MULTILINE);
 
-        LineIterator iter = FileUtils.lineIterator(androidManifest);
+        LineIterator iter = FileUtils.lineIterator(layoutFile);
 
         while (iter.hasNext()) {
             String row = iter.next();
