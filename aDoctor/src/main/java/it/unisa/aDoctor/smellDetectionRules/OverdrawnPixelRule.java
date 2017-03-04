@@ -23,7 +23,7 @@ public class OverdrawnPixelRule {
             if (regexMatcher.find()) {
                 count++;
 
-                if (count >= 6) {
+                if (count >= 10) {
                     return true;
                 }
 

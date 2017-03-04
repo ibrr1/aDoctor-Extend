@@ -27,6 +27,8 @@ import it.unisa.aDoctor.smellDetectionRules.UncontrolledFocusOrderRule;
 import it.unisa.aDoctor.smellDetectionRules.NotDescriptiveUIRule;
 import it.unisa.aDoctor.smellDetectionRules.UntouchableRule;
 import it.unisa.aDoctor.smellDetectionRules.OverdrawnPixelRule;
+import it.unisa.aDoctor.smellDetectionRules.NestedLayoutRule;
+
 
 
 import it.unisa.aDoctor.beans.ClassBean;
@@ -108,9 +110,10 @@ public class RunAndroidSmellDetection {
         NotDescriptiveUIRule notDescriptiveUIRule = new NotDescriptiveUIRule();
         UntouchableRule untouchableRule = new UntouchableRule();
         OverdrawnPixelRule overdrawnPixelRule = new OverdrawnPixelRule();
-
+        NestedLayoutRule nestedLayoutRule = new NestedLayoutRule();
+        
         String[] smellsType = {"DTWC", "DR", "DW", "IDFP", "IDS", "ISQLQ", "IGS", "LIC", "LT", "MIM", "NLMR", "PD", "RAM", "SL", "UC", "IFB", "UP", "BDTOSN", "DD", "ERB", "NIOOIMT", "THI", "UV", "PDT"};
-        String[] smellsTypeLayout = {"UF", "NDUI", "U", "OP"};
+        String[] smellsTypeLayout = {"UF", "NDUI", "U", "OP", "NL"};
 
         FILE_HEADER[0] = "App Name";
         FILE_HEADER[1] = "Tag";
@@ -496,6 +499,14 @@ public class RunAndroidSmellDetection {
                                         
                                         if (smellsNeededLayout.charAt(3) == '1') {
                                             if (overdrawnPixelRule.isOverdrawnPixelRule(layoutFile)) {
+                                                record2.add("1");
+                                            } else {
+                                                record2.add("0");
+                                            }
+                                        }
+                                        
+                                        if (smellsNeededLayout.charAt(4) == '1') {
+                                            if (nestedLayoutRule.isNestedLayoutRule(layoutFile)) {
                                                 record2.add("1");
                                             } else {
                                                 record2.add("0");
